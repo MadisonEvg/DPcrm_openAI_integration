@@ -1,0 +1,15 @@
+.env
+
+venv/
+.venv/
+
+.mypy_cache/
+.vscode/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+*.log
+*.tmp

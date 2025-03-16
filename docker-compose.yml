@@ -1,0 +1,13 @@
+version: '3'
+services:
+  bot:
+    network_mode: "host"
+    build: .
+    container_name: domoplaner_openAI
+    restart: unless-stopped
+    env_file:
+      - .env/.env
+    environment:
+      - IN_DOCKER=1  # Показываем, что это Docker
+    volumes:
+      - .:/app
