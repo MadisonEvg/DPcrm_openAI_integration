@@ -1,7 +1,7 @@
 import requests
 from config import Config
 
-class AmoCRMClient:
+class DpCRMClient:
     def __init__(self):
         self.url = Config.AMOCRM_URL
         self.access_token = Config.AMOCRM_ACCESS_TOKEN

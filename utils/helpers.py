@@ -1,12 +1,21 @@
 import json
 import re
+import tiktoken
 
 
-def count_tokens(messages, response):
-    prompt = " ".join([msg['content'] for msg in messages])
-    input_tokens = len(prompt.split())
-    output_tokens = len(response.split())
-    return input_tokens, output_tokens
+def count_tokens(messages, response, model="gpt-4"):
+    encoding = tiktoken.encoding_for_model(model)
+    num_tokens = 0
+    for message in messages:
+        num_tokens += len(encoding.encode(message["content"]))
+    return num_tokens, len(encoding.encode(response))
+
+
+# def count_tokens(messages, response):
+#     prompt = " ".join([msg['content'] for msg in messages])
+#     input_tokens = len(prompt.split())
+#     output_tokens = len(response.split())
+#     return input_tokens, output_tokens
 
 
 def trim_conversation_history(history, max_tokens=3500):
