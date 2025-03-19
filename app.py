@@ -11,10 +11,6 @@ app.register_blueprint(webhook_bp)
 
 wazzup_client = WazzupClient()
 
-@app.route('/')
-def hello_world():
-  return 'Hello, World!'
-
 def init_webhooks():
     time.sleep(2)
     wazzup_client.update_webhooks()

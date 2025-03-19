@@ -8,8 +8,6 @@ if not IN_DOCKER:
     dotenv_path = os.path.join(os.getcwd(), ".env", ".env")
     load_dotenv(dotenv_path)
 
-load_dotenv()
-
 class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     
@@ -37,6 +35,8 @@ class Config:
     DPCRM_FIRST_STATUS=os.getenv("DPCRM_FIRST_STATUS")
     DPCRM_SUCCESS_STATUS=os.getenv("DPCRM_SUCCESS_STATUS")
     DPCRM_ARCHIVE_STATUS=os.getenv("DPCRM_ARCHIVE_STATUS")
+    
+    VALID_CLIENT_STATUSES=os.getenv("VALID_CLIENT_STATUSES")
 
     TOKEN_COST_IN_GPT4O = 2.50 / 10**6
     TOKEN_COST_OUT_GPT4O = 10.00 / 10**6

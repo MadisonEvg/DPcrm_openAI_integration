@@ -3,7 +3,7 @@ import logging
 from utils.wazzup_client import WazzupClient
 from utils.openai_client import OpenAIClient
 from utils.statistics_manager import StatisticsManager
-from utils.reminder_tasks import schedule_task
+from utils.reminder_tasks import schedule_task, cancel_task
 from utils.dp_client import DpCRMClient
 
 
@@ -34,7 +34,10 @@ async def webhook():
                 chat_id = message.get("chatId")
                 lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)
 
-                if lead['status'] not in (dp_crm_client.status_first, dp_crm_client.status_archive):
+                if not dp_crm_client.is_client_status_valid(lead['status']):
+                    wazzup_client.send_message(chat_id, f"Вы в игноре! статус_id({lead['status']})")
+                    # lead status reset!
+                    # dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_first)
                     return jsonify({"status": "ok"}), 200
                 
                 if not client_message or not chat_id:
@@ -49,9 +52,17 @@ async def webhook():
                 if final_response.strip().endswith("статус ожидает звонка"):
                     final_response = final_response.rstrip().removesuffix("статус ожидает звонка").rstrip()
                     dp_crm_client.change_lead_to_success_status(lead['id'])
+                    cancel_task(chat_id)
+                elif final_response.strip().endswith("неуспешный диалог"):
+                    final_response = final_response.rstrip().removesuffix("неуспешный диалог").rstrip()
+                    dp_crm_client.change_lead_to_success_status(lead['id'])
+                    dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_archive)
+                    cancel_task(chat_id)
+                else:
+                    schedule_task(chat_id, lead['id'])  # Планируем задачу в фоне
                 
                 wazzup_client.send_message(chat_id, final_response)
-                schedule_task(chat_id)  # Планируем задачу в фоне
+                
                 stats_manager.update_statistics(
                     input_tokens_o=input_tokens,
                     output_tokens_o=output_tokens,
