@@ -16,10 +16,10 @@ dp_crm_client = DpCRMClient()
 
 @webhook_bp.route('/webhooks', methods=['POST'])
 async def webhook():
-    
+    print('------------------------------------------------')
     try:
         data = request.get_json(silent=True)
-        print(f"Получен вебхук: {data}")
+        # print(f"Получен вебхук: {data}")
         
         if data and data.get("test") == True:
             print("Тестовый запрос от Wazzup обработан успешно")
@@ -59,6 +59,7 @@ async def webhook():
                     dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_archive)
                     cancel_task(chat_id)
                 else:
+                    print('!!!!!!!!!!!!!!!!!!!')
                     schedule_task(chat_id, lead['id'])  # Планируем задачу в фоне
                 
                 wazzup_client.send_message(chat_id, final_response)
