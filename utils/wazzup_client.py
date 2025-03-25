@@ -1,4 +1,5 @@
 import requests
+import json
 from config import Config
 from models.conversation_manager import ConversationManager
 
@@ -15,6 +16,7 @@ class WazzupClient:
         self._conversation_manager = ConversationManager()
 
     def send_message(self, chat_id, message_text):
+        self._conversation_manager.initialize_conversation(chat_id)
         payload = {
             "channelId": self.channel_id,
             "chatType": "whatsapp",
@@ -45,8 +47,9 @@ class WazzupClient:
         }
         try:
             response = requests.patch(self.webhooks_api_url, json=payload, headers=self._headers)
+            print('response', response.text)
             response.raise_for_status()
-            print(response.text)
             return response.text
         except requests.exceptions.RequestException as e:
+            print(str(e))
             return {"error": str(e)}
