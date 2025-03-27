@@ -16,11 +16,11 @@ class ConversationManager:
     
     # key это source_id из инфы lead'а
     # https://domoplaner.ru/mypanel/settings/leads/ на вкладке Источники
+    DEFAULT_PROMPT_PATH = "promts/promt.docx"  # Дефолтный путь
     PROMPT_PATHS = {
-        1: "promts/promt_victory.docx",
-        9077: "promts/promt.docx",
+        7269: "promts/promt_victory.docx",
+        9077: DEFAULT_PROMPT_PATH,
     }
-    DEFAULT_PROMPT_PATH = "promts/promt_victory.docx"  # Дефолтный путь
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
