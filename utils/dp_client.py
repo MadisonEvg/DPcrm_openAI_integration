@@ -66,6 +66,7 @@ class DpCRMClient:
         payload = {
             "phone": phone,
             "name": f"Контакт {phone}",
+            "source": "wazzup",
             # "status_id": self.status_first
         }
         response = requests.post(url, json=payload, headers=self.headers)

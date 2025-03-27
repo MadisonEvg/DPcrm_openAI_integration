@@ -16,7 +16,6 @@ class WazzupClient:
         self._conversation_manager = ConversationManager()
 
     def send_message(self, chat_id, message_text):
-        self._conversation_manager.initialize_conversation(chat_id)
         payload = {
             "channelId": self.channel_id,
             "chatType": "whatsapp",

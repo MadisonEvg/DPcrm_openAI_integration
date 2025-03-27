@@ -34,9 +34,6 @@ class OpenAIClient:
         return response_text, input_tokens, output_tokens
     
     async def create_gpt4o_response(self, question, chat_id):
-        # Инициализация истории диалога, если её ещё нет
-        self._conversation_manager.initialize_conversation(chat_id)
-        
         # Добавляем новое сообщение пользователя
         self._conversation_manager.add_user_message(chat_id, question)
         

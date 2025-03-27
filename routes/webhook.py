@@ -5,6 +5,7 @@ from utils.openai_client import OpenAIClient
 from utils.statistics_manager import StatisticsManager
 from utils.reminder_tasks import schedule_task, cancel_task
 from utils.dp_client import DpCRMClient
+from models.conversation_manager import ConversationManager
 
 
 webhook_bp = Blueprint('webhooks', __name__)
@@ -12,6 +13,7 @@ wazzup_client = WazzupClient()
 openai_client = OpenAIClient()
 stats_manager = StatisticsManager()
 dp_crm_client = DpCRMClient()
+conversation_manager = ConversationManager()
        
 
 @webhook_bp.route('/webhooks', methods=['POST'])
@@ -33,6 +35,7 @@ async def webhook():
                 client_message = message.get("text")
                 chat_id = message.get("chatId")
                 lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)
+                conversation_manager.initialize_conversation(chat_id, lead['source_id'])
 
                 if not dp_crm_client.is_client_status_valid(lead['status']):
                     wazzup_client.send_message(chat_id, f"Вы в игноре! статус_id({lead['status']})")

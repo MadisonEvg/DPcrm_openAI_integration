@@ -13,6 +13,14 @@ class Role(Enum):
 class ConversationManager:
     
     _instance = None  
+    
+    # key это source_id из инфы lead'а
+    # https://domoplaner.ru/mypanel/settings/leads/ на вкладке Источники
+    PROMPT_PATHS = {
+        1: "promts/promt_victory.docx",
+        9077: "promts/promt.docx",
+    }
+    DEFAULT_PROMPT_PATH = "promts/promt_victory.docx"  # Дефолтный путь
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -20,9 +28,9 @@ class ConversationManager:
             cls._instance.conversation_histories = {} 
         return cls._instance
 
-    def __init__(self):
-        if not hasattr(self, "promt"):  # Чтобы не перезаписывать при повторном вызове
-            self.promt = self._read_prompt_from_word(Config.PROMPT_FILE_PATH)
+    def _get_promt(self, source_id):
+        prompt_path = self.PROMPT_PATHS.get(source_id, self.DEFAULT_PROMPT_PATH)
+        return self._read_prompt_from_word(prompt_path)
 
     def _read_prompt_from_word(self, file_path: str) -> str:
         try:
@@ -32,9 +40,11 @@ class ConversationManager:
             print(f"Ошибка при чтении файла {file_path}: {e}")
             return "Произошла ошибка при загрузке промпта."
 
-    def initialize_conversation(self, chat_id):
+    def initialize_conversation(self, chat_id, source_id):
+        # Делаем инициализацию в точке входа, обработке webhook'а
         if chat_id not in self.conversation_histories:
-            self.conversation_histories[chat_id]=[{"role": Role.SYSTEM.value, "content": self.promt}]
+            promt = self._get_promt(source_id)
+            self.conversation_histories[chat_id]=[{"role": Role.SYSTEM.value, "content": promt}]
             
     def add_user_message(self, chat_id, content):
         self.add_message(chat_id, Role.USER, content)
