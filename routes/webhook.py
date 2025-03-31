@@ -55,12 +55,14 @@ async def webhook():
                     client_message, chat_id
                 )
                 
-                if final_response.strip().endswith("статус ожидает звонка"):
+                response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id)
+                logger.info(f'--webhook-- response_from_mini: {response_from_mini}')
+                if response_from_mini.lower() == "статус ожидает звонка":
                     logger.info(f"--webhook-- изменили на статус ожидает звонка")
                     final_response = final_response.rstrip().removesuffix("статус ожидает звонка").rstrip()
                     dp_crm_client.change_lead_to_success_status(lead['id'])
                     await cancel_task(chat_id)
-                elif final_response.strip().endswith("неуспешный диалог"):
+                elif response_from_mini.lower() == "неуспешный диалог":
                     logger.info(f"--webhook-- изменили на Неуспешный диалог")
                     final_response = final_response.rstrip().removesuffix("неуспешный диалог").rstrip()
                     dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_archive)

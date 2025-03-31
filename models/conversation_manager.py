@@ -8,6 +8,12 @@ class Role(Enum):
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
+    
+    
+MINI_PROMT = '''Анализируя весь контекст диалога, если ты убеждаешься, что клиент дал согласие на звонок, то  напиши в нижнем регистре: "статус ожидает звонка"
+Анализируя весь контекст диалога, если ты убеждаешься, что клиент дал отрицательный ответ на предложение созвониться или сказал, что ничего не надо, то  напиши в нижнем регистре: "неуспешный диалог"
+Если пока что непонятно диалог успешный или нет, напиши в нижнем регистре: "разговор продолжается"
+Больше ничего писать не надо.'''
 
 
 class ConversationManager:
@@ -17,6 +23,7 @@ class ConversationManager:
     # key это source_id из инфы lead'а
     # https://domoplaner.ru/mypanel/settings/leads/ на вкладке Источники
     DEFAULT_PROMPT_PATH = "promts/promt.docx"  # Дефолтный путь
+    MINI_PROMPT_PATH = "promts/promt_mini.docx"  # Путь для решения успешности диалога
     PROMPT_PATHS = {
         7269: "promts/promt_victory.docx",
         9077: DEFAULT_PROMPT_PATH,
@@ -27,6 +34,9 @@ class ConversationManager:
             cls._instance = super().__new__(cls)
             cls._instance.conversation_histories = {} 
         return cls._instance
+    
+    def __init__(self):
+        self.mini_promt = self._read_prompt_from_word(self.MINI_PROMPT_PATH)
 
     def _get_promt(self, source_id):
         prompt_path = self.PROMPT_PATHS.get(source_id, self.DEFAULT_PROMPT_PATH)
@@ -57,6 +67,9 @@ class ConversationManager:
 
     def get_history(self, chat_id):
         return self.conversation_histories.get(chat_id, [])
+    
+    def get_history_for_mini(self, chat_id):
+        return [{"role": Role.SYSTEM.value, "content": self.mini_promt}] + self.get_history(chat_id)[1:][-5:]
 
     def trim_history(self, chat_id, max_tokens=3500):
         history = self.conversation_histories.get(chat_id, [])
