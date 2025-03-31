@@ -40,6 +40,7 @@ async def webhook():
                 conversation_manager.initialize_conversation(chat_id, lead['source_id'])
 
                 if not dp_crm_client.is_client_status_valid(lead['status']):
+                    logger.info(f"--webhooks-- lead {chat_id} is ignoring {lead['status']}")
                     # wazzup_client.send_message(chat_id, f"Вы в игноре! статус_id({lead['status']})")
                     # lead status reset!
                     # dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_first)
