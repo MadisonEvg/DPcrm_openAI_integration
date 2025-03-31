@@ -18,7 +18,6 @@ class Config:
     WAZZUP_WEBHOOKS_URL = os.getenv("WAZZUP_WEBHOOKS_URL")
     WEBHOOKS_URI = os.getenv("WEBHOOKS_URI")
     
-    PROMPT_FILE_PATH = os.getenv('PROMPT_FILE_PATH')
     PROXY_URL = os.getenv('PROXY_URL')
     DPCRM_ACCESS_TOKEN = os.getenv("DPCRM_ACCESS_TOKEN")
     PDCRM_URL = "https://acc524e049130cf3.amocrm.ru"
