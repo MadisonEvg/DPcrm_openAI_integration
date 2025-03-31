@@ -61,7 +61,7 @@ async def delayed_task(task_id, last_reminder=False):
         
 def calc_wait_second():
     now = datetime.now(VLADIVOSTOK_TZ).time()
-    send_now = (Config.NOTIFY_START_TIME, 0) <= (now.hour, now.minute) <= (Config.NOTIFY_END_TIME, 25)
+    send_now = (Config.NOTIFY_START_TIME, 0) <= (now.hour, now.minute) <= (Config.NOTIFY_END_TIME, 0)
     logger.info(f"---- send_now: {send_now}")
     if not send_now:
         # Если время не в допустимом диапазоне
@@ -76,8 +76,8 @@ async def cancel_task(task_id):
     """Удаляет напоминание, в случае если диалог успешен или клиент ответил отрицательно
     или если появилась новая задача с таким task_id"""
     if task_id in tasks:
-        tasks[task_id].cancel()  # Отменяем старую задачу
-        await asyncio.sleep(0.2)  # Ждём 0.5 секунды
+        tasks[task_id].cancel()
+        await asyncio.sleep(0.2)
         logger.info("-- cancel_task -- cancel {task_id}")
     
         
