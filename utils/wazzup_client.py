@@ -2,6 +2,8 @@ import requests
 import json
 from config import Config
 from models.conversation_manager import ConversationManager
+from logger_config import logger
+
 
 class WazzupClient:
     def __init__(self):
@@ -16,6 +18,7 @@ class WazzupClient:
         self._conversation_manager = ConversationManager()
 
     def send_message(self, chat_id, message_text):
+        
         payload = {
             "channelId": self.channel_id,
             "chatType": "whatsapp",
@@ -24,15 +27,17 @@ class WazzupClient:
         }
         try:
             # Добавляем новое сообщение пользователя
+            logger.info(f"------------ wz send_message {chat_id}: {message_text}")
             self._conversation_manager.add_assistant_message(chat_id, message_text)
             response = requests.post(self.api_url, headers=self._headers, json=payload)
             response.raise_for_status()
-            print("Ответ от Wazzup:", response.json())
             return response.json()
         except requests.exceptions.HTTPError as e:
-            print("Ошибка HTTP:", e)
+            logger.error("Ошибка HTTP:", e)
         except requests.exceptions.RequestException as e:
-            print("Ошибка при отправке сообщения в Wazzup:", e)
+            logger.error("Ошибка при отправке сообщения в Wazzup:", e)
+        except Exception as e:
+            logger.error("Ошибка", e)
             
     def update_webhooks(self):
         payload = {

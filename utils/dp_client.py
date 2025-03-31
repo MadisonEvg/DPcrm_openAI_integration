@@ -1,5 +1,6 @@
 import requests
 from config import Config
+from logger_config import logger
 
 class DpCRMClient:
     def __init__(self):
@@ -23,6 +24,11 @@ class DpCRMClient:
     
     def is_client_status_valid(self, status):
         return status in self.valid_client_statuses
+    
+    
+    def is_client_allowed_to_remind(self, status):
+        logger.info(f"--dp_client--is_client_is_client_allowed_to_remind-- {status} == {self.status_first}")
+        return status == self.status_first
         
         
     def get_users_status_by_title(self, title, statuses):
@@ -85,10 +91,10 @@ class DpCRMClient:
 
         if response.status_code == 200:
             result = response.json()
-            print(f"Статус пользователя изменён на {result}.")
+            logger.info(f"Статус пользователя изменён на {result}.")
             return response.json()
         else:
-            print(f"Ошибка при изменении статуса клиента: {response.text}")
+            logger.warning(f"Ошибка при изменении статуса клиента: {response.text}")
             return None
     
     def change_lead_to_success_status(self, user_id):

@@ -7,6 +7,7 @@ from config import Config
 from utils.helpers import count_tokens
 from models.conversation_manager import ConversationManager
 from openai import AsyncOpenAI
+from logger_config import logger
 
 
 class OpenAIClient:
@@ -25,12 +26,12 @@ class OpenAIClient:
                 messages=messages
             )
         except Exception as e:
-            print(f"Ошибка при обращении к OpenAI: {e}")
+            logger.error(f"Ошибка при обращении к OpenAI: {e}")
             return "Произошла ошибка при обработке запроса.", 0, 0
         response_text = response.choices[0].message.content.strip()
         input_tokens, output_tokens = count_tokens(messages, response_text)
-        print(f"Ответ от {model}: {response_text}")
-        print(f"Входных токенов: {input_tokens}, Выходных токенов: {output_tokens}")
+        logger.info(f"Ответ от {model}: {response_text}")
+        logger.info(f"Входных токенов: {input_tokens}, Выходных токенов: {output_tokens}")
         return response_text, input_tokens, output_tokens
     
     async def create_gpt4o_response(self, question, chat_id):

@@ -42,3 +42,6 @@ class Config:
     TOKEN_COST_OUT_GPT4O = 10.00 / 10**6
     TOKEN_COST_IN_GPT4_MINI = 0.150 / 10**6
     TOKEN_COST_OUT_GPT4_MINI = 0.600 / 10**6
+    
+    NOTIFY_START_TIME = int(os.getenv("NOTIFY_START_TIME", 10))
+    NOTIFY_END_TIME = int(os.getenv("NOTIFY_END_TIME", 20))

@@ -11,3 +11,4 @@ services:
       - IN_DOCKER=1  # Показываем, что это Docker
     volumes:
       - .:/app
+      - ./logs:/logs
