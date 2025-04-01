@@ -36,7 +36,12 @@ async def webhook():
             if message.get("type") == "text" and message.get("status") == "inbound":
                 client_message = message.get("text")
                 chat_id = message.get("chatId")
+                
                 lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)
+                # skip not victory
+                if lead['source_id'] != 7269:
+                    return jsonify({"status": "ok"}), 200
+                
                 conversation_manager.initialize_conversation(chat_id, lead['source_id'])
 
                 if not dp_crm_client.is_client_status_valid(lead['status']):
@@ -59,12 +64,10 @@ async def webhook():
                 logger.info(f'--webhook-- response_from_mini: {response_from_mini}')
                 if response_from_mini.lower() == "статус ожидает звонка":
                     logger.info(f"--webhook-- изменили на статус ожидает звонка")
-                    final_response = final_response.rstrip().removesuffix("статус ожидает звонка").rstrip()
                     dp_crm_client.change_lead_to_success_status(lead['id'])
                     await cancel_task(chat_id)
                 elif response_from_mini.lower() == "неуспешный диалог":
                     logger.info(f"--webhook-- изменили на Неуспешный диалог")
-                    final_response = final_response.rstrip().removesuffix("неуспешный диалог").rstrip()
                     dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_archive)
                     await cancel_task(chat_id)
                 elif dp_crm_client.is_client_allowed_to_remind(lead['status']):
