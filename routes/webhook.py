@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 import logging
+import threading
 from utils.wazzup_client import WazzupClient
 from utils.openai_client import OpenAIClient
 from utils.statistics_manager import StatisticsManager
@@ -7,6 +8,8 @@ from utils.reminder_tasks import schedule_task, cancel_task
 from utils.dp_client import DpCRMClient
 from models.conversation_manager import ConversationManager, PromptType
 from logger_config import logger
+import asyncio
+from utils.async_loop import loop
 
 
 webhook_bp = Blueprint('webhooks', __name__)
@@ -15,7 +18,58 @@ openai_client = OpenAIClient()
 stats_manager = StatisticsManager()
 dp_crm_client = DpCRMClient()
 conversation_manager = ConversationManager()
+
+# Хранилище сообщений в памяти
+user_messages = {}
+user_timers = {}
+
        
+async def send_response(chat_id):
+    """Отправляет накопленные сообщения пользователю"""
+    messages = user_messages.pop(chat_id, [])
+    if messages:
+        combined_message = "\n".join(messages)
+        logger.info(f"---------- Sending response to {chat_id}: {combined_message}")
+
+        lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)    
+        conversation_manager.initialize_conversation(chat_id, lead['source_id'])
+
+        final_response, input_tokens, output_tokens = await openai_client.create_gpt4o_response(
+            combined_message, chat_id
+        )
+        
+        response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id, PromptType.MINI_DIALOG)
+        logger.info(f'--webhook-- response_from_mini: {response_from_mini}')
+        if response_from_mini.lower() == "статус ожидает звонка":
+            logger.info(f"--webhook-- изменили на статус ожидает звонка")
+            dp_crm_client.change_lead_to_success_status(lead['id'])
+            await cancel_task(chat_id)
+        elif response_from_mini.lower() == "неуспешный диалог":
+            logger.info(f"--webhook-- изменили на Неуспешный диалог")
+            dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_archive)
+            await cancel_task(chat_id)
+        elif dp_crm_client.is_client_allowed_to_remind(lead['status']):
+            logger.info(f"--webhook-- запускаем напоминалку")
+            logger.info(f"--webhook-- schedule_task {chat_id}, {lead['id']}")
+            await schedule_task(chat_id, lead['id'])  # Планируем задачу в фоне
+        else:
+            await cancel_task(chat_id)
+            logger.info(f"--webhook-- напоминалка запрещена!!")
+            logger.warning(f"запрещено отсылать напоминание из-за статуса: {lead['status']}")
+        
+        wazzup_client.send_message(chat_id, final_response)
+        
+        stats_manager.update_statistics(
+            input_tokens_o=input_tokens,
+            output_tokens_o=output_tokens,
+            is_successful=False,
+            phone_number=chat_id
+        )
+        
+async def delayed_send(user_id):
+    """Ждет 10 секунд, затем отправляет накопленные сообщения"""
+    await asyncio.sleep(10)
+    await send_response(user_id)
 
 @webhook_bp.route('/webhooks', methods=['POST'])
 async def webhook():
@@ -41,55 +95,31 @@ async def webhook():
                 # skip not victory
                 if lead['source_id'] != 7269:
                     logger.info(f"--webhooks-- skipping not vicroty lead")
-                    # TODO uncomment befor commit!!!!!!!!!!!
-                    # return jsonify({"status": "ok"}), 200 
-                
-                conversation_manager.initialize_conversation(chat_id, lead['source_id'])
-
-                if not dp_crm_client.is_client_status_valid(lead['status']):
-                    logger.info(f"--webhooks-- lead {chat_id} is ignoring {lead['status']}")
-                    # wazzup_client.send_message(chat_id, f"Вы в игноре! статус_id({lead['status']})")
-                    # lead status reset!
-                    # dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_first)
-                    return jsonify({"status": "ok"}), 200
+                    return jsonify({"status": "ok"}), 200 
                 
                 if not client_message or not chat_id:
                     logger.info(f"--webhooks-- Нет текста или chatId, игнорируем")
                     continue
+                
+                if not dp_crm_client.is_client_status_valid(lead['status']):
+                    logger.info(f"--webhooks-- lead {chat_id} is ignoring {lead['status']}")
+                #     # wazzup_client.send_message(chat_id, f"Вы в игноре! статус_id({lead['status']})")
+                #     # lead status reset!
+                #     # dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_first)
+                    return jsonify({"status": "ok"}), 200
+                
+                # Добавляем сообщение в буфер
+                if chat_id not in user_messages:
+                    user_messages[chat_id] = []
+                user_messages[chat_id].append(client_message)
 
+                # Если уже был запущен таймер, сбрасываем его
+                if chat_id in user_timers:
+                    user_timers[chat_id].cancel()
+
+                # Устанавливаем новый таймер
+                user_timers[chat_id] = asyncio.run_coroutine_threadsafe(delayed_send(chat_id), loop)
                 
-                final_response, input_tokens, output_tokens = await openai_client.create_gpt4o_response(
-                    client_message, chat_id
-                )
-                
-                response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id, PromptType.MINI_DIALOG)
-                logger.info(f'--webhook-- response_from_mini: {response_from_mini}')
-                if response_from_mini.lower() == "статус ожидает звонка":
-                    logger.info(f"--webhook-- изменили на статус ожидает звонка")
-                    dp_crm_client.change_lead_to_success_status(lead['id'])
-                    await cancel_task(chat_id)
-                elif response_from_mini.lower() == "неуспешный диалог":
-                    logger.info(f"--webhook-- изменили на Неуспешный диалог")
-                    dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_archive)
-                    await cancel_task(chat_id)
-                elif dp_crm_client.is_client_allowed_to_remind(lead['status']):
-                    logger.info(f"--webhook-- запускаем напоминалку")
-                    logger.info(f"--webhook-- schedule_task {chat_id}, {lead['id']}")
-                    await schedule_task(chat_id, lead['id'])  # Планируем задачу в фоне
-                else:
-                    await cancel_task(chat_id)
-                    logger.info(f"--webhook-- напоминалка запрещена!!")
-                    logger.warning(f"запрещено отсылать напоминание из-за статуса: {lead['status']}")
-                
-                wazzup_client.send_message(chat_id, final_response)
-                
-                stats_manager.update_statistics(
-                    input_tokens_o=input_tokens,
-                    output_tokens_o=output_tokens,
-                    is_successful=False,
-                    phone_number=chat_id
-                )
-            
         return jsonify({"status": "ok"}), 200
 
     except Exception as e:
