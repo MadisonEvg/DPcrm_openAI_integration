@@ -6,9 +6,12 @@ from datetime import datetime, timedelta
 from utils.wazzup_client import WazzupClient
 from utils.dp_client import DpCRMClient
 from logger_config import logger
+from utils.openai_client import OpenAIClient
+from models.conversation_manager import PromptType
 
 wazzup_client = WazzupClient()
 dp_crm_client = DpCRMClient()
+openai_client = OpenAIClient()
 VLADIVOSTOK_TZ = pytz.timezone("Asia/Vladivostok")
 
 # Словарь для хранения задач по ключу chat_id
@@ -45,7 +48,9 @@ async def delayed_task(task_id, last_reminder=False):
             logger.info(f"Последнее напоминание прошло у пользователя {tasks_lead_id[task_id]} меняем статус")
             dp_crm_client.change_user_status(tasks_lead_id[task_id], dp_crm_client.status_archive)
         else:
-            wazzup_client.send_message(task_id, "Вы про меня не забыли?")
+            response_from_mini = await openai_client.get_gpt4o_mini_response(task_id, PromptType.MINI_PING)
+            logger.info(f'--delayed_task-- response_from_mini PING!!!!: {response_from_mini}')
+            wazzup_client.send_message(task_id, response_from_mini)
         
     except asyncio.CancelledError:
         last_reminder = True
@@ -63,6 +68,8 @@ def calc_wait_second():
     now = datetime.now(VLADIVOSTOK_TZ).time()
     send_now = (Config.NOTIFY_START_TIME, 0) <= (now.hour, now.minute) <= (Config.NOTIFY_END_TIME, 0)
     logger.info(f"---- send_now: {send_now}")
+    # TODO delete next line befor commit
+    return 0
     if not send_now:
         # Если время не в допустимом диапазоне
         tomorrow_10am = (datetime.now(VLADIVOSTOK_TZ) + timedelta(days=1)).replace(hour=10, minute=0, second=0, microsecond=0)

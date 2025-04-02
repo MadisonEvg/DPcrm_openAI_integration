@@ -5,12 +5,19 @@ import httpx
 from datetime import datetime
 from config import Config
 from utils.helpers import count_tokens
-from models.conversation_manager import ConversationManager
+from models.conversation_manager import ConversationManager, PromptType
 from openai import AsyncOpenAI
 from logger_config import logger
 
 
 class OpenAIClient:
+    
+    _instance = None  
+    
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
     
     def __init__(self):
         transport = httpx.AsyncHTTPTransport(proxy=Config.PROXY_URL)
@@ -53,11 +60,11 @@ class OpenAIClient:
         
         return gpt4_response, input_tokens, output_tokens
     
-    async def get_gpt4o_mini_response(self, chat_id):
+    async def get_gpt4o_mini_response(self, chat_id, prompt_type: PromptType):
         # Ограничиваем историю, чтобы не превышать лимит токенов
         self._conversation_manager.trim_history(chat_id, max_tokens=Config.MAX_TOKENS)
         
-        history_for_mini = self._conversation_manager.get_history_for_mini(chat_id)
+        history_for_mini = self._conversation_manager.get_history_for_mini(chat_id, prompt_type)
         result = history_for_mini[0]['content'] + "Диалог пользователя и ассистента:\n"
         for s in history_for_mini[1:]:
             result += s['content'] + '\n'

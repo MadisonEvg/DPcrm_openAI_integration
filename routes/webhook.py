@@ -5,7 +5,7 @@ from utils.openai_client import OpenAIClient
 from utils.statistics_manager import StatisticsManager
 from utils.reminder_tasks import schedule_task, cancel_task
 from utils.dp_client import DpCRMClient
-from models.conversation_manager import ConversationManager
+from models.conversation_manager import ConversationManager, PromptType
 from logger_config import logger
 
 
@@ -40,7 +40,9 @@ async def webhook():
                 lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)
                 # skip not victory
                 if lead['source_id'] != 7269:
-                    return jsonify({"status": "ok"}), 200
+                    logger.info(f"--webhooks-- skipping not vicroty lead")
+                    # TODO uncomment befor commit!!!!!!!!!!!
+                    # return jsonify({"status": "ok"}), 200 
                 
                 conversation_manager.initialize_conversation(chat_id, lead['source_id'])
 
@@ -60,7 +62,7 @@ async def webhook():
                     client_message, chat_id
                 )
                 
-                response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id)
+                response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id, PromptType.MINI_DIALOG)
                 logger.info(f'--webhook-- response_from_mini: {response_from_mini}')
                 if response_from_mini.lower() == "статус ожидает звонка":
                     logger.info(f"--webhook-- изменили на статус ожидает звонка")
