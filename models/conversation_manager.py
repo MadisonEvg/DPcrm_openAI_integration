@@ -26,6 +26,7 @@ class ConversationManager:
     PROMPT_PATHS = {
         7269: "promts/promt_victory.docx",
         9077: DEFAULT_PROMPT_PATH,
+        9198: "promts/promt_victory.docx",
     }
 
     def __new__(cls, *args, **kwargs):

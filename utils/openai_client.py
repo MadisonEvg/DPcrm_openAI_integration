@@ -65,13 +65,13 @@ class OpenAIClient:
         self._conversation_manager.trim_history(chat_id, max_tokens=Config.MAX_TOKENS)
         
         history_for_mini = self._conversation_manager.get_history_for_mini(chat_id, prompt_type)
-        result = history_for_mini[0]['content'] + "Диалог пользователя и ассистента:\n"
+        result = history_for_mini[0]['content'] + "\n"
         for s in history_for_mini[1:]:
-            result += s['content'] + '\n'
+            result += '- ' + s['content'] + '\n'
         logger.info(f'get_gpt4o_mini content: {result}')
         # Отправляем всю историю вместе с новым сообщением для GPT
         task_response = asyncio.create_task(self._ask_openai(
-            [{"role": "user", "content": result}],
+            [{"role": "system", "content": result}],
             model=Config.MODEL_GPT4OMINI
         ))
         gpt4_response, _, _ = await task_response

@@ -11,24 +11,51 @@ class DpCRMClient:
             "Content-Type": "application/json"
         }
         statuses = self.get_users_statuses()['statuses']
+        logger.info(f"------ id статусов:")
+        # с таким статусом создаём клиента в ДП
         self.status_first = self.get_users_status_by_title(Config.DPCRM_FIRST_STATUS, statuses)
+        logger.info(f"status_first={self.status_first}")
+        # если диалог успешен, переводим в этом статус
         self.status_success = self.get_users_status_by_title(Config.DPCRM_SUCCESS_STATUS, statuses)
+        logger.info(f"status_success={self.status_success}")
+        # дополнительный статус, если ссылка получена когда-нибудь
+        self.status_link_received = self.get_users_status_by_title(Config.DPCRM_LINK_RECEIVED, statuses)
+        logger.info(f"status_link_received={self.status_link_received}")
+        # дополнительный статус, если клиент не отвечает после пинга или клиент отказался (но ссылку так и не получил)
         self.status_archive = self.get_users_status_by_title(Config.DPCRM_ARCHIVE_STATUS, statuses)
-        self.valid_client_statuses = self.get_valid_client_statuses(statuses)
-        
-        
-    def get_valid_client_statuses(self, statuses):
-        valid_client_statuses = [status.strip() for status in Config.VALID_CLIENT_STATUSES.split(",")]
-        return [status['id'] for status in statuses if status['title'] in valid_client_statuses]
+        logger.info(f"status_archive={self.status_archive}")
+        # в этих статусах бот отвечает
+        self.valid_client_statuses = self.get_list_of_statuses(statuses, Config.DPCRM_VALID_CLIENT_STATUSES)
+        # Статусы в которых можно пинговать
+        self.ping_allowed_statuses = self.get_list_of_statuses(statuses, Config.DPCRM_PING_ALLOWED)
+
+    
+    def change_lead_to_success_status(self, user_id):
+        self.change_user_status(user_id, self.status_success)
     
     
+    def change_lead_to_link_received_status(self, user_id):
+        self.change_user_status(user_id, self.status_link_received)
+    
+    
+    def change_lead_to_archive_status(self, user_id, user_status_id):
+        # Проверяем, если у клиента статус link_received_status, то никуда не перемещаем
+        if user_status_id != self.status_link_received:
+            self.change_user_status(user_id, self.status_archive)
+        
+   
+    def get_list_of_statuses(self, all_statuses, spec_statuses):
+        valid_client_statuses = [status.strip() for status in spec_statuses.split(",")]
+        return [status['id'] for status in all_statuses if status['title'] in valid_client_statuses]
+        
+        
     def is_client_status_valid(self, status):
         return status in self.valid_client_statuses
     
     
     def is_client_allowed_to_remind(self, status):
         logger.info(f"--dp_client--is_client_is_client_allowed_to_remind-- {status} == {self.status_first}")
-        return status == self.status_first
+        return status in self.ping_allowed_statuses
         
         
     def get_users_status_by_title(self, title, statuses):
@@ -82,6 +109,7 @@ class DpCRMClient:
             return f"Ошибка при получении данных: {response.text}"
         
     def change_user_status(self, user_id, status_id):
+        logger.info(f"Изменить статус клиента {user_id} на {status_id}")
         url = f"{self.url}/leads/{user_id}/status"
         payload = {
             "status_id": status_id
@@ -97,5 +125,4 @@ class DpCRMClient:
             logger.warning(f"Ошибка при изменении статуса клиента: {response.text}")
             return None
     
-    def change_lead_to_success_status(self, user_id):
-        self.change_user_status(user_id, self.status_success)
+    

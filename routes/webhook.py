@@ -40,20 +40,21 @@ async def send_response(chat_id):
         
         response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id, PromptType.MINI_DIALOG)
         logger.info(f'--webhook-- response_from_mini: {response_from_mini}')
+        await cancel_task(chat_id)
         if response_from_mini.lower() == "статус ожидает звонка":
             logger.info(f"--webhook-- изменили на статус ожидает звонка")
             dp_crm_client.change_lead_to_success_status(lead['id'])
-            await cancel_task(chat_id)
+        elif response_from_mini.lower() == "статус презентация отправлена":
+            logger.info(f"--webhook-- изменили на статус презентация отправлена")
+            dp_crm_client.change_lead_to_link_received_status(lead['id'])
         elif response_from_mini.lower() == "неуспешный диалог":
-            logger.info(f"--webhook-- изменили на Неуспешный диалог")
-            dp_crm_client.change_user_status(lead['id'], dp_crm_client.status_archive)
-            await cancel_task(chat_id)
+            logger.info(f"--webhook-- изменили на статус неуспешный диалог")
+            dp_crm_client.change_lead_to_archive_status(lead['id'], lead['status'])
         elif dp_crm_client.is_client_allowed_to_remind(lead['status']):
             logger.info(f"--webhook-- запускаем напоминалку")
             logger.info(f"--webhook-- schedule_task {chat_id}, {lead['id']}")
             await schedule_task(chat_id, lead['id'])  # Планируем задачу в фоне
         else:
-            await cancel_task(chat_id)
             logger.info(f"--webhook-- напоминалка запрещена!!")
             logger.warning(f"запрещено отсылать напоминание из-за статуса: {lead['status']}")
         
@@ -93,7 +94,7 @@ async def webhook():
                 
                 lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)
                 # skip not victory
-                if lead['source_id'] != 7269:
+                if lead['source_id'] not in (7269, 9198):
                     logger.info(f"--webhooks-- skipping not vicroty lead")
                     return jsonify({"status": "ok"}), 200 
                 
