@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import logging
 import threading
 from utils.wazzup_client import WazzupClient
-from utils.openai_client import OpenAIClient
+from utils.openai_client import OpenAIClient, AUDIO_PHOTO_RESPOSE
 from utils.statistics_manager import StatisticsManager
 from utils.reminder_tasks import schedule_task, cancel_task
 from utils.dp_client import DpCRMClient
@@ -78,7 +78,6 @@ async def webhook():
     try:
         data = request.get_json(silent=True)
         logger.info(f"Получен вебхук: {data}")
-        
         if data and data.get("test") == True:
             logger.info("Тестовый запрос от Wazzup обработан успешно")
             return jsonify({"status": "ok"}), 200
@@ -88,6 +87,11 @@ async def webhook():
             return jsonify({"status": "ok"}), 200
 
         for message in data["messages"]:
+            if (message.get("type") == 'audio' or message.get("type") == 'image') and message.get("status") == "inbound":
+                chat_id = message.get("chatId")
+                wazzup_client.send_message(chat_id, AUDIO_PHOTO_RESPOSE)
+                return jsonify({"status": "ok"}), 200
+            
             if message.get("type") == "text" and message.get("status") == "inbound":
                 client_message = message.get("text")
                 chat_id = message.get("chatId")

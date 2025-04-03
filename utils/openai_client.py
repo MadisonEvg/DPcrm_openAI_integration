@@ -9,6 +9,7 @@ from models.conversation_manager import ConversationManager, PromptType
 from openai import AsyncOpenAI
 from logger_config import logger
 
+AUDIO_PHOTO_RESPOSE = "Напишите пожалуйста текстом🙏 \nНаш софт позволяет видеть только текстовое сообщение."
 
 class OpenAIClient:
     
