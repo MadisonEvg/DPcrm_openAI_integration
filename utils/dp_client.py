@@ -1,8 +1,15 @@
 import requests
 from config import Config
 from logger_config import logger
+from enum import IntEnum
+from datetime import datetime
+
+class MessageDirection(IntEnum):
+    INCOMING = 1
+    OUTGOING = 2
 
 class DpCRMClient:
+    
     def __init__(self):
         self.url = Config.DPCRM_API_URL
         self.access_token = Config.DPCRM_ACCESS_TOKEN
@@ -102,6 +109,26 @@ class DpCRMClient:
             "source": "wazzup",
             # "status_id": self.status_first
         }
+        response = requests.post(url, json=payload, headers=self.headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return f"Ошибка при получении данных: {response.text}"
+        
+    def send_message(self, text, client_number, direction: MessageDirection):
+        """Creating an array of messages to the client
+        """
+        url = f"{self.url}/chats/messages"
+        author_name = " " if direction == MessageDirection.INCOMING else "бот"
+        payload = [{
+            "text": text,
+            "client_number": client_number,
+            "messenger_type": 1,
+            "content_type": 1,
+            "direction": direction,
+            "author_name": author_name,
+            "dt_message": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }]
         response = requests.post(url, json=payload, headers=self.headers)
         if response.status_code == 200:
             return response.json()

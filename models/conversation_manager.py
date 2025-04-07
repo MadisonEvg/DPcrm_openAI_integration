@@ -2,7 +2,9 @@ from utils.helpers import trim_conversation_history
 from config import Config
 from docx import Document
 from enum import Enum
+from utils.dp_client import DpCRMClient, MessageDirection
 
+dp_crm_client = DpCRMClient()
 
 class Role(Enum):
     USER = "user"
@@ -59,9 +61,11 @@ class ConversationManager:
             
     def add_user_message(self, chat_id, content):
         self.add_message(chat_id, Role.USER, content)
+        dp_crm_client.send_message(content, chat_id, MessageDirection.INCOMING)
         
     def add_assistant_message(self, chat_id, content):
         self.add_message(chat_id, Role.ASSISTANT, content)
+        dp_crm_client.send_message(content, chat_id, MessageDirection.OUTGOING)
 
     def add_message(self, chat_id, role, content):
         self.conversation_histories[chat_id].append({"role": role.value, "content": content})
