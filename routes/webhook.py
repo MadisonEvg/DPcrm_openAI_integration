@@ -57,7 +57,7 @@ async def send_response(chat_id):
         else:
             logger.info(f"--webhook-- напоминалка запрещена!!")
             logger.warning(f"запрещено отсылать напоминание из-за статуса: {lead['status']}")
-        
+        final_response = final_response.replace('[ссылка]', '')
         wazzup_client.send_message(chat_id, final_response)
         
         stats_manager.update_statistics(
@@ -87,6 +87,9 @@ async def webhook():
             return jsonify({"status": "ok"}), 200
 
         for message in data["messages"]:
+            if (message.get("chatType") == 'whatsgroup'):
+                return jsonify({"status": "ok"}), 200
+            
             if (message.get("type") == 'audio' or message.get("type") == 'image') and message.get("status") == "inbound":
                 chat_id = message.get("chatId")
                 wazzup_client.send_message(chat_id, AUDIO_PHOTO_RESPOSE)

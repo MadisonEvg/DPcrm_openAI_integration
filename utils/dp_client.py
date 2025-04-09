@@ -17,24 +17,25 @@ class DpCRMClient:
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
         }
-        statuses = self.get_users_statuses()['statuses']
         logger.info(f"------ id статусов:")
         # с таким статусом создаём клиента в ДП
-        self.status_first = self.get_users_status_by_title(Config.DPCRM_FIRST_STATUS, statuses)
+        self.status_first = Config.DPCRM_FIRST_STATUS
         logger.info(f"status_first={self.status_first}")
         # если диалог успешен, переводим в этом статус
-        self.status_success = self.get_users_status_by_title(Config.DPCRM_SUCCESS_STATUS, statuses)
+        self.status_success = Config.DPCRM_SUCCESS_STATUS
         logger.info(f"status_success={self.status_success}")
         # дополнительный статус, если ссылка получена когда-нибудь
-        self.status_link_received = self.get_users_status_by_title(Config.DPCRM_LINK_RECEIVED, statuses)
+        self.status_link_received = Config.DPCRM_LINK_RECEIVED
         logger.info(f"status_link_received={self.status_link_received}")
         # дополнительный статус, если клиент не отвечает после пинга или клиент отказался (но ссылку так и не получил)
-        self.status_archive = self.get_users_status_by_title(Config.DPCRM_ARCHIVE_STATUS, statuses)
+        self.status_archive = Config.DPCRM_ARCHIVE_STATUS
         logger.info(f"status_archive={self.status_archive}")
         # в этих статусах бот отвечает
-        self.valid_client_statuses = self.get_list_of_statuses(statuses, Config.DPCRM_VALID_CLIENT_STATUSES)
+        self.valid_client_statuses = Config.DPCRM_VALID_CLIENT_STATUSES
         # Статусы в которых можно пинговать
-        self.ping_allowed_statuses = self.get_list_of_statuses(statuses, Config.DPCRM_PING_ALLOWED)
+        self.ping_allowed_statuses = [Config.DPCRM_PING_ALLOWED]
+        logger.info(f"ping_allowed_statuses={self.ping_allowed_statuses}")
+        print('---------')
 
     
     def change_lead_to_success_status(self, user_id):
@@ -113,7 +114,8 @@ class DpCRMClient:
         if response.status_code == 200:
             return response.json()
         else:
-            return f"Ошибка при получении данных: {response.text}"
+            logger.error(f"Ошибка при добавлении пользователя: {response.text}")
+            raise Exception(f"Ошибка при добавлении пользователя: {response.text}")
         
     def send_message(self, text, client_number, direction: MessageDirection):
         """Creating an array of messages to the client

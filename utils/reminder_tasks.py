@@ -20,23 +20,6 @@ tasks = {}
 tasks_lead_id = {}
 
 
-async def monitor_tasks():
-    while True:
-        logger.info("------------ monitor_tasks ------------")
-        active_tasks = list(tasks.keys())
-        logger.info(f"tasks: {active_tasks}")
-        active_tasks = [
-            t.get_name() for t in asyncio.all_tasks(loop) 
-            if not t.done() and t.get_coro().__name__ != "monitor_tasks"
-        ]
-        logger.info(f"active tasks: {active_tasks}")  # Исправленный вывод
-        
-        logger.info("------------ monitor_tasks end---------")
-        await asyncio.sleep(60)
-
-# Запускаем мониторинг в event loop'е
-future = asyncio.run_coroutine_threadsafe(monitor_tasks(), loop)
-
 async def delayed_task(task_id):
     try:
         await asyncio.sleep(Config.USER_PING_DELAY)
