@@ -1,8 +1,11 @@
+import pytz
 from utils.helpers import trim_conversation_history
 from config import Config
 from docx import Document
 from enum import Enum
 from utils.dp_client import DpCRMClient, MessageDirection
+from datetime import datetime
+
 
 dp_crm_client = DpCRMClient()
 
@@ -14,6 +17,22 @@ class Role(Enum):
 class PromptType(Enum):
     MINI_DIALOG = "mini_dialog"
     MINI_PING = "mini_ping"
+    
+weekdays = {
+    0: 'Понедельник',
+    1: 'Вторник',
+    2: 'Среда',
+    3: 'Четверг',
+    4: 'Пятница',
+    5: 'Суббота',
+    6: 'Воскресенье',
+}    
+    
+def get_vladivostok_time():
+    vladivostok_tz = pytz.timezone('Asia/Vladivostok')
+    vladivostok_time = datetime.now(vladivostok_tz)
+    weekday = weekdays[vladivostok_time.weekday()]
+    return f"{weekday}, {vladivostok_time.strftime('%Y-%m-%d %H:%M:%S')}"
     
     
 class ConversationManager:
@@ -58,6 +77,19 @@ class ConversationManager:
         if chat_id not in self.conversation_histories:
             promt = self._get_promt(source_id)
             self.conversation_histories[chat_id]=[{"role": Role.SYSTEM.value, "content": promt}]
+        vladivostok_time = get_vladivostok_time()
+        time_message_found = False
+        for msg in self.conversation_histories[chat_id]:
+            if msg['role'] == 'system' and 'Текущее время во Владивостоке' in msg['content']:
+                msg['content'] = f"Текущее время во Владивостоке: {vladivostok_time}"
+                time_message_found = True
+                break
+        if not time_message_found:
+            self.add_message(chat_id, Role.SYSTEM,
+                             f"Текущее время во Владивостоке: {vladivostok_time}")
+        print('----------------!!!!!!!!!!!--------------')
+        print(self.conversation_histories[chat_id])
+        print('----------------!!!!!!!!!!!--------------')
             
     def add_user_message(self, chat_id, content):
         self.add_message(chat_id, Role.USER, content)

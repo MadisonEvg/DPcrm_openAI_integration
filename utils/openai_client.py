@@ -58,6 +58,7 @@ class OpenAIClient:
         task_delay = asyncio.create_task(asyncio.sleep(Config.ASSISTANT_DELAY))
         gpt4_response, input_tokens, output_tokens = await task_response
         await task_delay
+        self._conversation_manager.add_assistant_message(chat_id, gpt4_response)
         
         return gpt4_response, input_tokens, output_tokens
     
@@ -67,8 +68,9 @@ class OpenAIClient:
         
         history_for_mini = self._conversation_manager.get_history_for_mini(chat_id, prompt_type)
         result = history_for_mini[0]['content'] + "\n"
-        for s in history_for_mini[1:]:
-            result += '- ' + s['content'] + '\n'
+        # скипаем промт и текущее время
+        for s in history_for_mini[2:]:
+            result += f"{s['role']}: {s['content']} \n"
         logger.info(f'get_gpt4o_mini content: {result}')
         # Отправляем всю историю вместе с новым сообщением для GPT
         task_response = asyncio.create_task(self._ask_openai(

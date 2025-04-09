@@ -28,7 +28,7 @@ class WazzupClient:
         try:
             # Добавляем новое сообщение пользователя
             logger.info(f"------------ wz send_message {chat_id}: {message_text}")
-            self._conversation_manager.add_assistant_message(chat_id, message_text)
+            # self._conversation_manager.add_assistant_message(chat_id, message_text)
             response = requests.post(self.api_url, headers=self._headers, json=payload)
             response.raise_for_status()
             return response.json()

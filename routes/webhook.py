@@ -44,6 +44,7 @@ async def send_response(chat_id):
         if response_from_mini.lower() == "статус ожидает звонка":
             logger.info(f"--webhook-- изменили на статус ожидает звонка")
             dp_crm_client.change_lead_to_success_status(lead['id'])
+            # asyncio.run_coroutine_threadsafe(delayed_change_to_success_status(lead['id']), loop)
         elif response_from_mini.lower() == "статус презентация отправлена":
             logger.info(f"--webhook-- изменили на статус презентация отправлена")
             dp_crm_client.change_lead_to_link_received_status(lead['id'])
@@ -66,6 +67,12 @@ async def send_response(chat_id):
             is_successful=False,
             phone_number=chat_id
         )
+        
+# async def delayed_change_to_success_status(user_id):
+#     """Ждет минуту, затем меняем статус клиента"""
+#     await asyncio.sleep(60)
+#     logger.info(f"--webhook-- изменили на статус ожидает звонка")
+#     dp_crm_client.change_lead_to_success_status(user_id)
         
 async def delayed_send(user_id):
     """Ждет 10 секунд, затем отправляет накопленные сообщения"""
