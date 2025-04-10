@@ -99,6 +99,16 @@ async def webhook():
             
             if (message.get("type") == 'audio' or message.get("type") == 'image') and message.get("status") == "inbound":
                 chat_id = message.get("chatId")
+                lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)
+                # skip not victory
+                if lead['source_id'] not in (7269, 9198):
+                    logger.info(f"--webhooks-- skipping not victory lead")
+                    return jsonify({"status": "ok"}), 200
+                
+                if not dp_crm_client.is_client_status_valid(lead['status']):
+                    logger.info(f"--webhooks-- lead {chat_id} is ignoring {lead['status']}")
+                    return jsonify({"status": "ok"}), 200
+                
                 wazzup_client.send_message(chat_id, AUDIO_PHOTO_RESPOSE)
                 return jsonify({"status": "ok"}), 200
             
@@ -109,7 +119,7 @@ async def webhook():
                 lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)
                 # skip not victory
                 if lead['source_id'] not in (7269, 9198):
-                    logger.info(f"--webhooks-- skipping not vicroty lead")
+                    logger.info(f"--webhooks-- skipping not victory lead")
                     return jsonify({"status": "ok"}), 200 
                 
                 if not client_message or not chat_id:
