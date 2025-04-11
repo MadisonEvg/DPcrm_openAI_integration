@@ -88,6 +88,10 @@ async def webhook():
         if data and data.get("test") == True:
             logger.info("Тестовый запрос от Wazzup обработан успешно")
             return jsonify({"status": "ok"}), 200
+        
+        if data and data.get("webhook_test"):
+            logger.info(f"Проверка webhook'a!!!!!!!!!!!! {data.get('message')}")
+            return jsonify({"status": "ok"}), 200
 
         if not data or 'messages' not in data:
             logger.info(f"--webhooks-- data: {data} or 'messages not in data' {'messages' not in data}")
