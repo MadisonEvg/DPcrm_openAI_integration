@@ -10,6 +10,7 @@ from models.conversation_manager import ConversationManager, PromptType
 from logger_config import logger
 import asyncio
 from utils.async_loop import loop
+from config import Config
 
 
 webhook_bp = Blueprint('webhooks', __name__)
@@ -92,12 +93,15 @@ async def webhook():
         if data and data.get("webhook_test"):
             logger.info(f"Проверка webhook'a!!!!!!!!!!!! {data.get('message')}")
             return jsonify({"status": "ok"}), 200
-
+        
         if not data or 'messages' not in data:
             logger.info(f"--webhooks-- data: {data} or 'messages not in data' {'messages' not in data}")
             return jsonify({"status": "ok"}), 200
 
         for message in data["messages"]:
+            if message.get("channelId") != Config.WAZZUP_CHANNEL_ID:
+                return jsonify({"status": "ok"}), 200
+        
             if (message.get("chatType") == 'whatsgroup'):
                 return jsonify({"status": "ok"}), 200
             
