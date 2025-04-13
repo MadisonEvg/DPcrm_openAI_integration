@@ -1,9 +1,10 @@
 import json
 import os
-from config import Config
-from threading import Thread
 import schedule
 import time
+from config import Config
+from threading import Thread
+from logger_config import logger
 
 def reset_statistics():
     stats_manager = StatisticsManager()
@@ -21,11 +22,16 @@ def schedule_monthly_reset():
     while True:
         schedule.run_pending()
         time.sleep(60)
-
+        
+_scheduler_started = False
 def start_statistic_scheduler():
-    scheduler_thread = Thread(target=schedule_monthly_reset)
-    scheduler_thread.daemon = True  # Этот поток будет завершаться при закрытии основного приложения
-    scheduler_thread.start()
+    global _scheduler_started
+    if not _scheduler_started:
+        logger.info("----------- start_statistic_scheduler")
+        _scheduler_started = True
+        scheduler_thread = Thread(target=schedule_monthly_reset)
+        scheduler_thread.daemon = True  # Этот поток будет завершаться при закрытии основного приложения
+        scheduler_thread.start()
 
 class StatisticsManager:
     def __init__(self):

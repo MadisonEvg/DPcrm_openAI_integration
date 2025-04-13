@@ -25,12 +25,14 @@ def run_asyncio_task():
     
 threading.Thread(target=run_asyncio_task, daemon=True).start()
 
+start_statistic_scheduler()
+
 if __name__ == "__main__":
-    start_statistic_scheduler()
     logger.info("==========================")
     logger.info("Flask application started!")
     if IN_DOCKER:
-        app.run(host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'privkey.pem'))
+        pass
+        # app.run(host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'privkey.pem'))
     else:
         app.run(host='0.0.0.0', port=5000)
     
