@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify
 import logging
 import threading
+from quart import Blueprint, request, jsonify
 from utils.wazzup_client import WazzupClient
 from utils.openai_client import OpenAIClient, AUDIO_PHOTO_RESPOSE
 from utils.statistics_manager import StatisticsManager
@@ -79,12 +79,13 @@ async def delayed_send(user_id):
     """Ждет 10 секунд, затем отправляет накопленные сообщения"""
     await asyncio.sleep(10)
     await send_response(user_id)
+    
 
 @webhook_bp.route('/webhooks', methods=['POST'])
 async def webhook():
     logger.info('--webhooks--')
     try:
-        data = request.get_json(silent=True)
+        data = await request.get_json(silent=True)
         logger.info(f"Получен вебхук: {data}")
         if data and data.get("test") == True:
             logger.info("Тестовый запрос от Wazzup обработан успешно")

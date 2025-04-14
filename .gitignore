@@ -2,6 +2,8 @@
 
 venv/
 .venv/
+venv_wsl/
+.venv_wsl/
 
 .mypy_cache/
 .vscode/
