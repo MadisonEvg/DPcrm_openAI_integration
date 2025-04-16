@@ -5,6 +5,12 @@ from models.conversation_manager import ConversationManager
 from logger_config import logger
 
 
+def clean_text(text):
+    text = text.replace('[', '')
+    text = text.replace(']', '')
+    return text
+
+
 class WazzupClient:
     def __init__(self):
         self.api_url = Config.WAZZUP_API_URL
@@ -18,7 +24,7 @@ class WazzupClient:
         self._conversation_manager = ConversationManager()
 
     def send_message(self, chat_id, message_text):
-        
+        message_text = clean_text(message_text)        
         payload = {
             "channelId": self.channel_id,
             "chatType": "whatsapp",

@@ -80,9 +80,10 @@ class DpCRMClient:
     def get_or_create_lead_by_phone(self, phone):
         response = self.get_lead_by_phone(phone)
         if response['status'] == 'error' and response['text'] == 'Клиента с таким номером телефона не найдено':
-            user = self.add_user(phone)
-            self.change_user_status(user['lead_id'], self.status_first)
-            response = self.get_lead_by_phone(phone)
+            return None
+            # user = self.add_user(phone)
+            # self.change_user_status(user['lead_id'], self.status_first)
+            # response = self.get_lead_by_phone(phone)
         return response['lead']
         
     
