@@ -42,7 +42,7 @@ def calc_wait_second():
     logger.info(f"---- send_now: {send_now}")
     if not send_now:
         # Если время не в допустимом диапазоне
-        tomorrow_10am = (datetime.now(VLADIVOSTOK_TZ) + timedelta(days=1)).replace(hour=10, minute=0, second=0, microsecond=0)
+        tomorrow_10am = (datetime.now(VLADIVOSTOK_TZ) + timedelta(days=1)).replace(hour=10, minute=7, second=0, microsecond=0)
         wait_seconds = (tomorrow_10am - datetime.now(VLADIVOSTOK_TZ)).total_seconds()
         logger.info(f"Время вне диапазона, откладываем до 10:00 (ждать {wait_seconds // 60} минут)")
         return wait_seconds

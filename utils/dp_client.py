@@ -62,7 +62,7 @@ class DpCRMClient:
     
     
     def is_client_allowed_to_remind(self, status):
-        logger.info(f"--dp_client--is_client_is_client_allowed_to_remind-- {status} == {self.status_first}")
+        logger.info(f"--dp_client--is_client_is_client_allowed_to_remind--?? {status}")
         return status in self.ping_allowed_statuses
         
         
@@ -80,10 +80,9 @@ class DpCRMClient:
     def get_or_create_lead_by_phone(self, phone):
         response = self.get_lead_by_phone(phone)
         if response['status'] == 'error' and response['text'] == 'Клиента с таким номером телефона не найдено':
-            return None
-            # user = self.add_user(phone)
-            # self.change_user_status(user['lead_id'], self.status_first)
-            # response = self.get_lead_by_phone(phone)
+            user = self.add_user(phone)
+            self.change_user_status(user['lead_id'], self.status_first)
+            response = self.get_lead_by_phone(phone)
         return response['lead']
         
     
