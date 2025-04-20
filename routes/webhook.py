@@ -76,8 +76,8 @@ async def send_response(chat_id):
 #     dp_crm_client.change_lead_to_success_status(user_id)
         
 async def delayed_send(user_id):
-    """Ждет 10 секунд, затем отправляет накопленные сообщения"""
-    await asyncio.sleep(10)
+    """Ждет 25 секунд, затем отправляет накопленные сообщения"""
+    await asyncio.sleep(25)
     await send_response(user_id)
     
 
