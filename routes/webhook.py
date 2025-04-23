@@ -33,13 +33,12 @@ async def send_response(chat_id):
         logger.info(f"---------- Sending response to {chat_id}: {combined_message}")
 
         lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)    
-        conversation_manager.initialize_conversation(chat_id, lead['source_id'])
 
         final_response, input_tokens, output_tokens = await openai_client.create_gpt4o_response(
-            combined_message, chat_id
+            combined_message, chat_id, lead['source_id']
         )
         
-        response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id, PromptType.MINI_DIALOG)
+        response_from_mini = await openai_client.get_gpt4o_mini_response(chat_id, PromptType.MINI_DIALOG, lead['source_id'])
         logger.info(f'--webhook-- response_from_mini: {response_from_mini}')
         await cancel_task(chat_id)
         if response_from_mini.lower() == "статус ожидает звонка":
@@ -76,8 +75,8 @@ async def send_response(chat_id):
 #     dp_crm_client.change_lead_to_success_status(user_id)
         
 async def delayed_send(user_id):
-    """Ждет 25 секунд, затем отправляет накопленные сообщения"""
-    await asyncio.sleep(25)
+    """Ждет n секунд, затем отправляет накопленные сообщения"""
+    await asyncio.sleep(Config.USER_RESPONSE_DELAY)
     await send_response(user_id)
     
 
@@ -112,7 +111,7 @@ async def webhook():
 
                 # skip not victory
                 # 9149 wazzup
-                if lead['source_id'] not in (7269, 9198, 9149):
+                if lead['source_id'] not in (7269, 9198, 9149, 9077):
                     logger.info(f"--webhooks-- skipping not victory lead")
                     return jsonify({"status": "ok"}), 200
                 

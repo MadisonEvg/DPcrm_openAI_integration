@@ -43,30 +43,25 @@ class OpenAIClient:
         logger.info(f"Входных токенов: {input_tokens}, Выходных токенов: {output_tokens}")
         return response_text, input_tokens, output_tokens
     
-    async def create_gpt4o_response(self, question, chat_id):
+    async def create_gpt4o_response(self, question, chat_id, source_id):
         # Добавляем новое сообщение пользователя
-        self._conversation_manager.add_user_message(chat_id, question)
-        
-        # Ограничиваем историю, чтобы не превышать лимит токенов
-        self._conversation_manager.trim_history(chat_id, max_tokens=Config.MAX_TOKENS)
+        await self._conversation_manager.add_user_message(chat_id, question)
         
         # Отправляем всю историю вместе с новым сообщением для GPT
+        conversation_history = await self._conversation_manager.get_history(chat_id, max_tokens=Config.MAX_TOKENS, source_id=source_id)
         task_response = asyncio.create_task(self._ask_openai(
-            self._conversation_manager.get_history(chat_id),
+            conversation_history,
             model=Config.MODEL_GPT4O
         ))
         task_delay = asyncio.create_task(asyncio.sleep(Config.ASSISTANT_DELAY))
         gpt4_response, input_tokens, output_tokens = await task_response
         await task_delay
-        self._conversation_manager.add_assistant_message(chat_id, gpt4_response)
+        await self._conversation_manager.add_assistant_message(chat_id, gpt4_response)
         
         return gpt4_response, input_tokens, output_tokens
     
-    async def get_gpt4o_mini_response(self, chat_id, prompt_type: PromptType):
-        # Ограничиваем историю, чтобы не превышать лимит токенов
-        self._conversation_manager.trim_history(chat_id, max_tokens=Config.MAX_TOKENS)
-        
-        history_for_mini = self._conversation_manager.get_history_for_mini(chat_id, prompt_type)
+    async def get_gpt4o_mini_response(self, chat_id, prompt_type: PromptType, source_id=None):
+        history_for_mini = await self._conversation_manager.get_history_for_mini(chat_id, prompt_type, source_id, max_tokens=Config.MAX_TOKENS)
         result = history_for_mini[0]['content'] + "\n"
         # скипаем промт и текущее время
         for s in history_for_mini[2:]:

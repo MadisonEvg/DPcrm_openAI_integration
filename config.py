@@ -25,8 +25,9 @@ class Config:
     MODEL_GPT4O = "gpt-4o"
     MODEL_GPT4OMINI = "gpt-4o-mini"
     MAX_TOKENS = int(os.getenv("MAX_TOKENS", 10000))
-    ASSISTANT_DELAY = int(os.getenv("ASSISTANT_DELAY", 1))
     PORT = int(os.getenv("PORT", 8080))
+    ASSISTANT_DELAY = int(os.getenv("ASSISTANT_DELAY", 1))
+    USER_RESPONSE_DELAY = int(os.getenv("USER_RESPONSE_DELAY", 1))
     USER_PING_DELAY = int(os.getenv("USER_PING_DELAY", 7200))
     
     DPCRM_ACCESS_TOKEN=os.getenv("DPCRM_ACCESS_TOKEN")

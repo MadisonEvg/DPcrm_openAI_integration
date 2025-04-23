@@ -13,3 +13,9 @@ services:
       - .:/app
       - ./certs:/certs:ro
       - ./logs:/logs
+    networks:
+      - bot-net
+
+networks:
+  bot-net:
+    external: true

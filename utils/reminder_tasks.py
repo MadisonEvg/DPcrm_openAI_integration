@@ -10,6 +10,7 @@ from utils.openai_client import OpenAIClient
 from models.conversation_manager import PromptType
 from utils.async_loop import loop
 
+
 wazzup_client = WazzupClient()
 dp_crm_client = DpCRMClient()
 openai_client = OpenAIClient()
@@ -24,8 +25,8 @@ async def delayed_task(task_id):
     try:
         await asyncio.sleep(Config.USER_PING_DELAY)
         await asyncio.sleep(calc_wait_second())
-        
-        response_from_mini = await openai_client.get_gpt4o_mini_response(task_id, PromptType.MINI_PING)
+        lead = dp_crm_client.get_or_create_lead_by_phone(task_id)   
+        response_from_mini = await openai_client.get_gpt4o_mini_response(task_id, PromptType.MINI_PING, lead['source_id'])
         logger.info(f'--delayed_task-- response_from_mini PING!!!!: {response_from_mini}')
         wazzup_client.send_message(task_id, response_from_mini)
         

@@ -22,8 +22,8 @@ def trim_conversation_history(history, max_tokens=3500):
     total_tokens = sum(len(msg['content'].split()) for msg in history)
 
     while total_tokens > max_tokens:
-        if len(history) > 1:
-            removed = history.pop(1)  # Удаляем второе сообщение (сохраняем первое системное)
+        if len(history) > 2:
+            removed = history.pop(2)  # Удаляем третье сообщение (сохраняем первое системное и время)
             total_tokens -= len(removed['content'].split())
         else:
             break
