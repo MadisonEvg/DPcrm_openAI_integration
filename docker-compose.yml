@@ -1,4 +1,3 @@
-version: '3'
 services:
   bot:
     network_mode: "host"
@@ -13,8 +12,7 @@ services:
       - .:/app
       - ./certs:/certs:ro
       - ./logs:/logs
-    networks:
-      - bot-net
+
 
 networks:
   bot-net:
