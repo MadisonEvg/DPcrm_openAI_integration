@@ -133,7 +133,8 @@ async def webhook():
                 # 9149 wazzup
                 if lead['source_id'] not in (7269, 9198, 9149):
                     logger.info(f"--webhooks-- skipping not victory lead")
-                    return jsonify({"status": "ok"}), 200 
+                    return jsonify({"status": "ok"}), 200
+                logger.info(f"--- источник лида: {lead['source_id']}")
                 
                 if not client_message or not chat_id:
                     logger.info(f"--webhooks-- Нет текста или chatId, игнорируем")

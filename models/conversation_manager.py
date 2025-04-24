@@ -8,6 +8,7 @@ from datetime import datetime
 from models.models import Role
 from models.utils_db import add_conversation, get_conversation_history_by_chat_id
 from models.db import async_session_maker
+from logger_config import logger
 
 
 dp_crm_client = DpCRMClient()
@@ -59,6 +60,7 @@ class ConversationManager:
 
     def _get_promt(self, source_id):
         prompt_path = self.PROMPT_PATHS.get(source_id, self.DEFAULT_PROMPT_PATH)
+        logger.info(f"Выбран вот такой промт: ", prompt_path)
         return self._read_prompt_from_word(prompt_path)
 
     def _read_prompt_from_word(self, file_path: str) -> str:

@@ -14,6 +14,6 @@ DB_URL = (
     f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 )
 
-engine = create_async_engine(DB_URL, echo=True)
+engine = create_async_engine(DB_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 Base = declarative_base()
