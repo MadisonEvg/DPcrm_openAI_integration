@@ -48,7 +48,7 @@ class OpenAIClient:
         await self._conversation_manager.add_user_message(chat_id, question)
         
         # Отправляем всю историю вместе с новым сообщением для GPT
-        conversation_history = await self._conversation_manager.get_history(chat_id, max_tokens=Config.MAX_TOKENS, source_id=source_id)
+        conversation_history = await self._conversation_manager.get_history(chat_id, source_id, max_tokens=Config.MAX_TOKENS)
         task_response = asyncio.create_task(self._ask_openai(
             conversation_history,
             model=Config.MODEL_GPT4O

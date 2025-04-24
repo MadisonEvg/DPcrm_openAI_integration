@@ -59,7 +59,9 @@ class ConversationManager:
         self.mini_promt_ping = self._read_prompt_from_word(self.MINI_PROMPT_PING_PATH)
 
     def _get_promt(self, source_id):
+        logger.info(f"---- get_history --- prompt_path 1")
         prompt_path = self.PROMPT_PATHS.get(source_id, self.DEFAULT_PROMPT_PATH)
+        logger.info(f"---- get_history --- prompt_path 2 - {prompt_path}")
         logger.info(f"Выбран вот такой промт: ", prompt_path)
         return self._read_prompt_from_word(prompt_path)
 
@@ -71,7 +73,8 @@ class ConversationManager:
             print(f"Ошибка при чтении файла {file_path}: {e}")
             return "Произошла ошибка при загрузке промпта."
 
-    async def get_history(self, chat_id, source_id=DEFAULT_PROMPT_PATH, max_tokens=None):
+    async def get_history(self, chat_id, source_id, max_tokens=None):
+        logger.info(f"---- get_history --- source_id - {source_id}")
         promt = self._get_promt(source_id)
         full_history = [{"role": Role.SYSTEM.value, "content": promt}]
         vladivostok_time = get_vladivostok_time()

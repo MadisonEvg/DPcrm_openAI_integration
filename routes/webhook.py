@@ -32,7 +32,8 @@ async def send_response(chat_id):
         combined_message = "\n".join(messages)
         logger.info(f"---------- Sending response to {chat_id}: {combined_message}")
 
-        lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)    
+        lead = dp_crm_client.get_or_create_lead_by_phone(chat_id)  
+        logger.info(f"----------- send_response, source_id: {lead['source_id']}")  
 
         final_response, input_tokens, output_tokens = await openai_client.create_gpt4o_response(
             combined_message, chat_id, lead['source_id']
