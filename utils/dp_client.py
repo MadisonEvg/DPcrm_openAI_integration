@@ -3,6 +3,7 @@ from config import Config
 from logger_config import logger
 from enum import IntEnum
 from datetime import datetime
+from utils.helpers import get_dt_movement_from_and_to
 
 class MessageDirection(IntEnum):
     INCOMING = 1
@@ -13,8 +14,13 @@ class DpCRMClient:
     def __init__(self):
         self.url = Config.DPCRM_API_URL
         self.access_token = Config.DPCRM_ACCESS_TOKEN
+        self.user_access_token = Config.DPCRM_USER_TOKEN_TOKEN
         self.headers = {
             "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json"
+        }
+        self.inner_headers = {
+            "x-user-token": f"{self.user_access_token}",
             "Content-Type": "application/json"
         }
         logger.info(f"------ id статусов:")
@@ -153,5 +159,25 @@ class DpCRMClient:
         else:
             logger.warning(f"Ошибка при изменении статуса клиента: {response.text}")
             return None
+        
+    def get_lead_by_id(self, id):
+        url = f"{self.url}/leads/get-by-id?id={id}"
+        response = requests.get(url, headers=self.headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return f"Ошибка при получении данных: {response.text}"
+        
+        
+    # inner api
+    def get_movements(self):
+        SERVER_URL = 'https://domoplaner.ru/supereble-api/leads/movements'
+        dt_movement_from, dt_movement_to = get_dt_movement_from_and_to(Config.REMIND_LEAD_FROM_VICTORY_PERIOD)
+        url = f"{SERVER_URL}/get-raw?dt_movement_from={dt_movement_from}&dt_movement_to={dt_movement_to}"
+        response = requests.get(url, headers=self.inner_headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return f"Ошибка при получении данных: {response.text}"
     
     

@@ -1,6 +1,14 @@
 import json
 import re
 import tiktoken
+from datetime import datetime, timedelta
+
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
+
+def get_dt_movement_from_and_to(delta_hours=24):
+    dt_to = datetime.now() - timedelta(hours=2) # ищем лидов которые уже минимум 2 часа не отвечают
+    dt_from = dt_to - timedelta(hours=delta_hours) # с какого времени (даты) ещём лидов (за сутки, за неделю)
+    return dt_from.strftime(TIME_FORMAT), datetime.now().strftime(TIME_FORMAT)
 
 
 def count_tokens(messages, response, model="gpt-4"):
