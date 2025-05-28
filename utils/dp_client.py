@@ -87,8 +87,9 @@ class DpCRMClient:
         response = self.get_lead_by_phone(phone)
         if response['status'] == 'error' and response['text'] == 'Клиента с таким номером телефона не найдено':
             user = self.add_user(phone)
-            self.change_user_status(user['lead_id'], self.status_first)
-            response = self.get_lead_by_phone(phone)
+            raise Exception("нет лида с таким номером телефона")
+            # self.change_user_status(user['lead_id'], self.status_first)
+            # response = self.get_lead_by_phone(phone)
         return response['lead']
         
     
@@ -109,39 +110,41 @@ class DpCRMClient:
         Returns:
             dict: {'lead_id': 2064666, 'is_new_lead': 1, 'warnings': [], 'status': 'ok'}
         """
-        url = f"{self.url}/leads"
-        payload = {
-            "phone": phone,
-            "name": f"Контакт {phone}",
-            "source": "wazzup",
-            # "status_id": self.status_first
-        }
-        response = requests.post(url, json=payload, headers=self.headers)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            logger.error(f"Ошибка при добавлении пользователя: {response.text}")
-            raise Exception(f"Ошибка при добавлении пользователя: {response.text}")
+        return ""
+        # url = f"{self.url}/leads"
+        # payload = {
+        #     "phone": phone,
+        #     "name": f"Контакт {phone}",
+        #     "source": "wazzup",
+        #     # "status_id": self.status_first
+        # }
+        # response = requests.post(url, json=payload, headers=self.headers)
+        # if response.status_code == 200:
+        #     return response.json()
+        # else:
+        #     logger.error(f"Ошибка при добавлении пользователя: {response.text}")
+        #     raise Exception(f"Ошибка при добавлении пользователя: {response.text}")
         
     def send_message(self, text, client_number, direction: MessageDirection):
         """Creating an array of messages to the client
         """
-        url = f"{self.url}/chats/messages"
-        author_name = " " if direction == MessageDirection.INCOMING else "бот"
-        payload = [{
-            "text": text,
-            "client_number": client_number,
-            "messenger_type": 1,
-            "content_type": 1,
-            "direction": direction,
-            "author_name": author_name,
-            "dt_message": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }]
-        response = requests.post(url, json=payload, headers=self.headers)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return f"Ошибка при получении данных: {response.text}"
+        return
+        # url = f"{self.url}/chats/messages"
+        # author_name = " " if direction == MessageDirection.INCOMING else "бот"
+        # payload = [{
+        #     "text": text,
+        #     "client_number": client_number,
+        #     "messenger_type": 1,
+        #     "content_type": 1,
+        #     "direction": direction,
+        #     "author_name": author_name,
+        #     "dt_message": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        # }]
+        # response = requests.post(url, json=payload, headers=self.headers)
+        # if response.status_code == 200:
+        #     return response.json()
+        # else:
+        #     return f"Ошибка при получении данных: {response.text}"
         
     def change_user_status(self, user_id, status_id):
         logger.info(f"Изменить статус клиента {user_id} на {status_id}")

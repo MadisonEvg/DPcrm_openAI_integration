@@ -62,7 +62,7 @@ class ConversationManager:
         logger.info(f"---- get_history --- prompt_path 1")
         prompt_path = self.PROMPT_PATHS.get(source_id, self.DEFAULT_PROMPT_PATH)
         logger.info(f"---- get_history --- prompt_path 2 - {prompt_path}")
-        logger.info(f"Выбран вот такой промт: ", prompt_path)
+        logger.info(f"Выбран вот такой промт: {prompt_path}")
         return self._read_prompt_from_word(prompt_path)
 
     def _read_prompt_from_word(self, file_path: str) -> str:

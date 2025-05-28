@@ -46,20 +46,21 @@ class WazzupClient:
             logger.error("Ошибка", e)
             
     def update_webhooks(self):
-        payload = {
-            "webhooksUri": f'{self._webhooks_uri}/webhooks',
-            "subscriptions": {
-                "messagesAndStatuses": True,
-                "contactsAndDealsCreation": False,
-                "channelsUpdates": False,
-                "templateStatus": False
-            }
-        }
-        try:
-            response = requests.patch(self.webhooks_api_url, json=payload, headers=self._headers)
-            print('response', response.text)
-            response.raise_for_status()
-            return response.text
-        except requests.exceptions.RequestException as e:
-            print(str(e))
-            return {"error": str(e)}
+        return
+        # payload = {
+        #     "webhooksUri": f'{self._webhooks_uri}/webhooks',
+        #     "subscriptions": {
+        #         "messagesAndStatuses": True,
+        #         "contactsAndDealsCreation": False,
+        #         "channelsUpdates": False,
+        #         "templateStatus": False
+        #     }
+        # }
+        # try:
+        #     response = requests.patch(self.webhooks_api_url, json=payload, headers=self._headers)
+        #     print('response', response.text)
+        #     response.raise_for_status()
+        #     return response.text
+        # except requests.exceptions.RequestException as e:
+        #     print(str(e))
+        #     return {"error": str(e)}
